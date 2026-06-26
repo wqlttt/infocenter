@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env*
+!.env.example
+!.env.*.example
+server/release/
+
+# user request: ignore all markdown and docs
+*.md
+docs/
+doc/
+
+# OS & IDE
+.DS_Store
+.claude/
+.idea/
+.vscode/
+*.log

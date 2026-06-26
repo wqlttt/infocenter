@@ -4,8 +4,10 @@ import { Observable, Subscription } from 'rxjs';
 
 const HEARTBEAT_MS = 30_000;
 
+/** 将 RxJS Observable 挂载到 Express 响应，按 SSE 协议推流。 */
 @Injectable()
 export class SseTransportService {
+  /** 设置 SSE 响应头、心跳与订阅 channel$，客户端断开时清理。 */
   attach(channel$: Observable<MessageEvent>, req: Request, res: Response): Subscription {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -32,12 +34,14 @@ export class SseTransportService {
     return subscription;
   }
 
+  /** 按 SSE 格式写入 id / data 行。 */
   private writeEvent(res: Response, msg: MessageEvent): void {
     if (res.writableEnded) return;
     if (msg.id !== undefined) res.write(`id: ${msg.id}\n`);
     res.write(`data: ${JSON.stringify(msg.data)}\n\n`);
   }
 
+  /** 停止心跳并结束 HTTP 响应。 */
   private close(res: Response, heartbeat: NodeJS.Timeout): void {
     clearInterval(heartbeat);
     if (!res.writableEnded) res.end();

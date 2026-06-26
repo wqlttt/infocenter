@@ -32,10 +32,12 @@ export class MessageChangeStreamService implements OnModuleInit, OnModuleDestroy
     private readonly messagesManager: MessagesManager,
   ) {}
 
+  /** 是否因 Change Stream 不可用而走 send 后 fallback 推送。 */
   useFallback(): boolean {
     return this.fallbackMode;
   }
 
+  /** 启动时对 userMessageStates insert 建立 Change Stream 监听。 */
   onModuleInit(): void {
     try {
       this.changeStream = this.stateModel.watch(
@@ -64,6 +66,7 @@ export class MessageChangeStreamService implements OnModuleInit, OnModuleDestroy
     }
   }
 
+  /** 进程退出时关闭 Change Stream，释放资源。 */
   onModuleDestroy(): void {
     void this.changeStream?.close();
     this.changeStream = null;

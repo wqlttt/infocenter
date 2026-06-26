@@ -26,6 +26,7 @@ export interface MessagePayload {
   sendMessageTime: Date;
 }
 
+/** 消息数据层：MessageInfo / userMessageState 的 CRUD 与 payload 拼装。 */
 @Injectable()
 export class MessagesService {
   private readonly logger = new Logger(MessagesService.name);
@@ -37,6 +38,7 @@ export class MessagesService {
     private readonly stateModel: Model<UserMessageStateDocument>,
   ) {}
 
+  /** 将 userId 字符串转为 Mongo ObjectId。 */
   private uid(value: string): Types.ObjectId {
     return new Types.ObjectId(value);
   }
@@ -46,6 +48,7 @@ export class MessagesService {
     return { userId: this.uid(userId), isDeleted: false, ...extra };
   }
 
+  /** 将 state + body 拼装为前端统一的 MessagePayload。 */
   toClientPayload(state: any, body: any): MessagePayload {
     return {
       _id: state._id?.toString(),
@@ -60,6 +63,7 @@ export class MessagesService {
     };
   }
 
+  /** 批量按 states 关联 MessageInfo 并转为 payload 列表。 */
   async joinBodies(states: any[]): Promise<MessagePayload[]> {
     if (states.length === 0) return [];
     const messageIds = states.map((s) => s.messageId);
@@ -73,10 +77,12 @@ export class MessagesService {
       .filter((p): p is MessagePayload => p !== null);
   }
 
+  /** 按 messageId 查询消息本体。 */
   findMessageById(id: string) {
     return this.messageInfoModel.findById(id).exec();
   }
 
+  /** 查询用户未读且未软删的状态记录（倒序，限条数）。 */
   findUnreadStates(userId: string, limit = 200) {
     return this.stateModel
       .find(this.activeMailboxFilter(userId, { isRead: false }))
@@ -114,6 +120,7 @@ export class MessagesService {
       .exec();
   }
 
+  /** 分页查询用户收件箱并返回 payload 列表与总数。 */
   async findStateList(
     userId: string,
     { page, pageSize }: { page: number; pageSize: number },
@@ -126,6 +133,7 @@ export class MessagesService {
     return { list: await this.joinBodies(states), total, page, pageSize };
   }
 
+  /** 按用户 + messageId 查单条可见状态，非法 ID 返回 null。 */
   findStateByUserAndMessage(userId: string, messageId: string) {
     try {
       return this.stateModel.findOne({
@@ -137,10 +145,12 @@ export class MessagesService {
     }
   }
 
+  /** 统计用户未读且未软删的消息数。 */
   countUnread(userId: string): Promise<number> {
     return this.stateModel.countDocuments(this.activeMailboxFilter(userId, { isRead: false })).exec();
   }
 
+  /** 校验并转为 ObjectId，非法则抛 400。 */
   private toObjectIdOrThrow(value: string, label: string): Types.ObjectId {
     if (!value || !Types.ObjectId.isValid(value)) {
       throw new BadRequestException(`${label} 不是有效的 ID: ${value}`);
@@ -148,6 +158,7 @@ export class MessagesService {
     return new Types.ObjectId(value);
   }
 
+  /** 写入 MessageInfo 并为各收件人 bulk 插入 userMessageState。 */
   async create(sendUserId: string, dto: CreateMessageDto): Promise<UserMessageStateDocument[]> {
     if (!dto.receiverIds?.length) {
       throw new BadRequestException('receiverIds 不能为空');
@@ -178,6 +189,7 @@ export class MessagesService {
     return inserted;
   }
 
+  /** create 的对外封装，返回 messageId、投递数与 state 文档。 */
   async sendMessage(
     sendUserId: string,
     dto: CreateMessageDto,
@@ -190,6 +202,7 @@ export class MessagesService {
     };
   }
 
+  /** 将指定或全部未读状态置为已读（不含已软删）。 */
   markRead(userId: string, messageIds?: string[]) {
     const filter: Record<string, unknown> = this.activeMailboxFilter(userId, { isRead: false });
     if (messageIds?.length) {

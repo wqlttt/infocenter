@@ -13,7 +13,7 @@ dist/
 server/release/
 
 # user request: ignore all markdown and docs
-*.md
+# *.md
 !README.md
 docs/
 doc/

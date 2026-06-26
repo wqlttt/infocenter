@@ -14,6 +14,7 @@ server/release/
 
 # user request: ignore all markdown and docs
 *.md
+!README.md
 docs/
 doc/
 

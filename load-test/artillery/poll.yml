@@ -20,12 +20,18 @@ config:
         - duration: 120
           arrivalRate: 50
           maxVusers: 50
-    # 与 SSE 对称：1000 人在线，每 15s 轮询（约 66 req/s 稳态）
+    # 与 SSE 对称：1000 人在线，每 15s 轮询
     online1000:
       phases:
         - duration: 120
           arrivalRate: 10
           maxVusers: 1000
+    # 与 SSE 对称：10000 人在线（约 200s 拉满，稳态 ~666 req/s）
+    online10000:
+      phases:
+        - duration: 200
+          arrivalRate: 50
+          maxVusers: 10000
   ensure:
     maxErrorRate: 10
 

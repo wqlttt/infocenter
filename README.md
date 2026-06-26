@@ -137,7 +137,7 @@ curl http://localhost:3000/health
 
 ```text
 infocenter/
-├── client/          # Vue 3 前端
+├── client/          # Vue 3 z
 ├── server/          # NestJS 后端
 │   ├── src/
 │   └── scripts/     # 部署打包脚本

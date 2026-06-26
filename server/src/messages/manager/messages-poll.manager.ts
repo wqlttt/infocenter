@@ -16,6 +16,7 @@ export class MessagesPollManager {
 
   constructor(private readonly messagesService: MessagesService) {}
 
+  /** 短轮询拉取消息：有 lastEventId 则增量，否则首屏未读；返回列表、游标与未读数。 */
   async pollMessages(
     currentUserId: string,
     lastEventId?: string,
@@ -51,6 +52,7 @@ export class MessagesPollManager {
     };
   }
 
+  /** 计算下一轮轮询游标（含已删记录，避免游标回退重复拉取）。 */
   private async resolveHighWaterMark(
     currentUserId: string,
     lastEventId: string | undefined,

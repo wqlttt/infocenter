@@ -17,11 +17,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { json, urlencoded } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const jsonLimit = process.env.JSON_BODY_LIMIT || '100kb';
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  app.use(json({ limit: jsonLimit }));
+  app.use(urlencoded({ extended: true, limit: jsonLimit }));
   const config = app.get(ConfigService);
 
   // 基础安全头；关闭 CSP 以免干扰本地 SSE / 前端 dev server

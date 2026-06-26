@@ -17,7 +17,13 @@ import { HealthController } from './health/health.controller';
         uri: config.getOrThrow<string>('MONGODB_URI'),
       }),
     }),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const limit = config.get<number>('THROTTLE_LIMIT', 100);
+        return [{ ttl: 60000, limit: limit <= 0 ? 1_000_000 : limit }];
+      },
+    }),
     AuthModule,
     TeamsModule,
     MessagesModule,

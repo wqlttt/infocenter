@@ -1,0 +1,42 @@
+# 短轮询压测：多虚拟用户每 15s 调 GET /poll
+#
+# 运行：
+#   artillery run load-test/artillery/poll.yml -e light
+#   artillery run load-test/artillery/poll.yml -e heavy
+#
+# 前置：yarn seed:load -- --count 500
+
+config:
+  target: "http://localhost:3000"
+  processor: "./processor.js"
+  environments:
+    light:
+      phases:
+        - duration: 60
+          arrivalRate: 10
+          maxVusers: 10
+    heavy:
+      phases:
+        - duration: 120
+          arrivalRate: 50
+          maxVusers: 50
+    # 与 SSE 对称：1000 人在线，每 15s 轮询（约 66 req/s 稳态）
+    online1000:
+      phases:
+        - duration: 120
+          arrivalRate: 10
+          maxVusers: 1000
+  ensure:
+    maxErrorRate: 10
+
+scenarios:
+  - name: Member poll loop
+    flow:
+      - function: loginLoadtestUser
+      - loop:
+          - get:
+              url: "/label-platform-admin/message/poll"
+              headers:
+                Authorization: "Bearer {{ memberToken }}"
+          - think: 15
+        count: 4

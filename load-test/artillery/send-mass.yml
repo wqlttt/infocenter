@@ -1,0 +1,35 @@
+# 群发写库压测：单次 POST /send
+#
+# 运行：
+#   LOAD_RECEIVER_COUNT=500 artillery run load-test/artillery/send-mass.yml
+#
+# 压测前（server 目录）：
+#   THROTTLE_LIMIT=0 JSON_BODY_LIMIT=10mb yarn start:dev
+#   yarn seed:load -- --count 1000
+
+config:
+  target: "http://localhost:3000"
+  processor: "./processor.js"
+  phases:
+    - duration: 1
+      arrivalCount: 1
+  variables:
+    receiverCount: 100
+  ensure:
+    maxErrorRate: 0
+
+scenarios:
+  - name: Admin mass send
+    flow:
+      - function: setReceiverIds
+      - function: loginAdmin
+      - post:
+          url: "/label-platform-admin/message/send"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+            Content-Type: application/json
+          beforeRequest: buildSendBody
+          capture:
+            - json: "$.delivered"
+              as: deliveredCount
+      - log: "delivered={{ deliveredCount }}, receivers={{ receiverCountActual }}"

@@ -24,3 +24,10 @@ doc/
 .idea/
 .vscode/
 *.log
+
+# load test generated data
+load-test/data/*.json
+!load-test/data/.gitkeep
+load-test/reports/
+load-test/report*.json
+load-test/.artillery-key
